@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="An interactive artwork exploring the feeling of Yule through falling snow, rising embers, a glowing moon, and a hidden artist statement.">
+    <title>The Essence of Yule</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:wght@700&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0c0a09; /* A deep, near-black for the embers to pop */
+            color: #e2e8f0; /* Soft off-white */
+            overflow: hidden; /* Prevent scrollbars from the canvas */
+        }
+        #interactive-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        .cinzel {
+            font-family: 'Cinzel', serif;
+        }
+        .yule-trigger {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            z-index: 5;
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 700;
+            font-size: 2.25rem; /* Larger for more presence */
+            color: #f6ad55; /* A warm, fiery orange */
+            cursor: pointer;
+            text-shadow: 0 0 10px rgba(246, 173, 85, 0.7);
+            transition: all 0.3s ease-in-out;
+        }
+        .yule-trigger:hover {
+            color: #fbd38d;
+            text-shadow: 0 0 16px rgba(251, 211, 141, 0.9);
+            transform: scale(1.05);
+        }
+        .modal-overlay {
+            transition: opacity 0.3s ease-in-out;
+            z-index: 10;
+        }
+        .modal-content {
+            /* Translucent and blurred background */
+            background-color: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            transition: transform 0.3s ease-in-out;
+        }
+        .prose-custom p {
+            margin-bottom: 1.25em;
+            line-height: 1.8;
+            font-size: 1rem; /* Slightly smaller for the new context */
+        }
+        .prose-custom strong {
+            color: #fbd38d;
+        }
+        /* Scrollbar styling for modal */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(246, 173, 85, 0.6);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(251, 211, 141, 0.8);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- The interactive background canvas -->
+    <canvas id="interactive-canvas"></canvas>
+
+    <!-- The Clickable Trigger -->
+    <span id="yuleTrigger" class="yule-trigger">Yule</span>
+
+    <!-- Modal for the main text content -->
+    <div id="contentModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div class="modal-content max-w-lg w-full rounded-lg p-6 sm:p-8 transform scale-95">
+            <div class="flex justify-end items-center mb-2">
+                <button id="closeModal" class="text-slate-400 hover:text-white transition-colors">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="text-slate-200 space-y-3 prose-custom max-h-[70vh] overflow-y-auto pr-3 text-left">
+                <h2 class="cinzel text-xl text-amber-300 mb-4">Artist's Statement</h2>
+                <p>
+                    This piece is not a depiction, but a space for feeling. It is an attempt to capture the quiet paradox of the winter solstice: a celebration of light born from the deepest dark.
+                </p>
+                <p>
+                    The rising <strong>embers</strong> are the inner warmth we cultivate—memory, hope, and the spark of community. As you move through the space, you stir this fire, a reminder that our presence brings its own light.
+                </p>
+                <p>
+                    The gentle <strong>snow</strong> represents the silence, the sacred pause of the year turning over. It softens the world, inviting introspection. The <strong>evergreens</strong> stand as quiet symbols of life's endurance, while the cool light of the <strong>moon</strong> hangs in balance with the fire—a silent witness to these endless cycles.
+                </p>
+                <p>
+                    My hope is that you find a moment of peace here, a quiet space to reflect on the darkness and the light, within and without.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Interactive Canvas Logic ---
+            const canvas = document.getElementById('interactive-canvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            let trees = [];
+            let snowflakes = [];
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            // --- Particle Class (Embers and Sparks) ---
+            class Particle {
+                constructor(x, y, isSpark = false) {
+                    this.x = x;
+                    this.y = y;
+                    this.isSpark = isSpark;
+                    this.size = Math.random() * (this.isSpark ? 2.5 : 2) + 1;
+                    this.speedY = Math.random() * 1.5 + 0.5;
+                    this.speedX = (Math.random() - 0.5) * 0.5;
+                    this.color = this.isSpark ? `rgba(251, 211, 141, ${Math.random() * 0.5 + 0.5})` : `rgba(246, 173, 85, ${Math.random() * 0.5 + 0.2})`;
+                    this.life = this.isSpark ? Math.random() * 30 + 30 : Math.random() * 100 + 80;
+                    this.initialLife = this.life;
+                }
+                update() {
+                    this.life--;
+                    this.y -= this.speedY;
+                    this.x += this.speedX;
+                    if (this.size > 0.2) this.size *= 0.98;
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    const opacity = Math.max(0, this.life / this.initialLife);
+                    ctx.fillStyle = this.color.replace(/[\d\.]+\)$/, `${opacity * 0.8})`);
+                    ctx.fill();
+                }
+            }
+
+            // --- Snowflake Class ---
+            class Snowflake {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 2 + 1;
+                    this.speedY = Math.random() * 0.5 + 0.2; // Slower, gentler speed
+                    this.speedX = (Math.random() - 0.5) * 0.1; // Less horizontal drift
+                    this.opacity = Math.random() * 0.5 + 0.2;
+                }
+                update() {
+                    this.y += this.speedY;
+                    this.x += this.speedX;
+                    if (this.y > canvas.height) {
+                        this.y = -10;
+                        this.x = Math.random() * canvas.width;
+                    }
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(173, 216, 230, ${this.opacity})`; // Light blue for snow
+                    ctx.fill();
+                }
+            }
+
+            // --- Tree Class (Evergreen Silhouettes) ---
+            class Tree {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = canvas.height;
+                    this.height = Math.random() * 100 + 50;
+                    this.width = this.height / 2;
+                    this.life = 400; // Time to live (fade in/out)
+                    this.maxLife = this.life;
+                }
+                update() {
+                    this.life--;
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.x - this.width / 2, this.y);
+                    ctx.lineTo(this.x, this.y - this.height);
+                    ctx.lineTo(this.x + this.width / 2, this.y);
+                    ctx.closePath();
+                    
+                    let opacity;
+                    if (this.life > this.maxLife - 50) {
+                        opacity = (this.maxLife - this.life) / 50;
+                    } else if (this.life < 50) {
+                        opacity = this.life / 50;
+                    } else {
+                        opacity = 1;
+                    }
+                    
+                    ctx.fillStyle = `rgba(12, 20, 12, ${opacity * 0.25})`;
+                    ctx.fill();
+                }
+            }
+            
+            function createSnowflakes() {
+                const count = 100;
+                for (let i = 0; i < count; i++) {
+                    snowflakes.push(new Snowflake());
+                }
+            }
+
+            function handleParticles() {
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    particles[i].update();
+                    particles[i].draw();
+                    if (particles[i].life <= 0 || particles[i].size <= 0.2) {
+                        particles.splice(i, 1);
+                    }
+                }
+            }
+            
+            function handleTrees() {
+                for (let i = trees.length - 1; i >= 0; i--) {
+                    trees[i].update();
+                    trees[i].draw();
+                    if (trees[i].life <= 0) {
+                        trees.splice(i, 1);
+                    }
+                }
+            }
+            
+            function handleSnowflakes() {
+                for(let i = 0; i < snowflakes.length; i++) {
+                    snowflakes[i].update();
+                    snowflakes[i].draw();
+                }
+            }
+
+            function drawMoon() {
+                const moonX = canvas.width * 0.85;
+                const moonY = canvas.height * 0.15;
+                const moonRadius = Math.min(canvas.width, canvas.height) * 0.05;
+
+                // Glowing effect
+                ctx.save();
+                ctx.shadowBlur = 40;
+                ctx.shadowColor = 'rgba(240, 240, 255, 0.3)';
+
+                // Moon body
+                ctx.beginPath();
+                ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(240, 240, 255, 0.8)';
+                ctx.fill();
+                ctx.restore();
+            }
+
+            function animate() {
+                ctx.fillStyle = 'rgba(12, 10, 9, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                drawMoon();
+                handleSnowflakes();
+                
+                if (trees.length < 10 && Math.random() < 0.01) {
+                    trees.push(new Tree());
+                }
+                handleTrees();
+
+                if (particles.length < 150 && Math.random() > 0.5) {
+                    const x = Math.random() * canvas.width;
+                    const y = canvas.height + Math.random() * 50;
+                    particles.push(new Particle(x, y, false));
+                }
+                handleParticles();
+
+                requestAnimationFrame(animate);
+            }
+            
+            createSnowflakes();
+            animate();
+            
+            function createSparks(e) {
+                let x, y;
+                if (e.touches) {
+                    x = e.touches[0].clientX;
+                    y = e.touches[0].clientY;
+                } else {
+                    x = e.clientX;
+                    y = e.clientY;
+                }
+                for (let i = 0; i < 5; i++) {
+                     particles.push(new Particle(x, y, true));
+                }
+            }
+            window.addEventListener('mousemove', createSparks);
+            window.addEventListener('touchmove', createSparks);
+
+            // --- Simplified Modal Logic ---
+            const yuleTrigger = document.getElementById('yuleTrigger');
+            const modal = document.getElementById('contentModal');
+            const closeModalBtn = document.getElementById('closeModal');
+            const modalContent = modal.querySelector('.modal-content');
+
+            const openModal = () => {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.classList.add('opacity-100');
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            };
+
+            const closeTheModal = () => {
+                modalContent.classList.remove('scale-100');
+                modalContent.classList.add('scale-95');
+                modal.classList.remove('opacity-100');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            };
+
+            yuleTrigger.addEventListener('click', openModal);
+            yuleTrigger.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                openModal();
+            });
+
+            closeModalBtn.addEventListener('click', closeTheModal);
+            closeModalBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                closeTheModal();
+            });
+            
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    closeTheModal();
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && !modal.classList.contains('pointer-events-none')) {
+                    closeTheModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
