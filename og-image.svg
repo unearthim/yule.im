@@ -1,0 +1,33 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&amp;family=Inter:wght@400');
+            .title { font-family: 'Cinzel', serif; font-size: 80px; fill: #fbd38d; text-anchor: middle; }
+            .subtitle { font-family: 'Inter', sans-serif; font-size: 24px; fill: #e2e8f0; text-anchor: middle; }
+        </style>
+        <filter id="glow">
+            <feGaussianBlur stdDeviation="15" result="coloredBlur"/>
+            <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
+
+    <!-- Background -->
+    <rect width="1200" height="630" fill="#0c0a09"/>
+
+    <!-- Moon with glow -->
+    <circle cx="1000" cy="150" r="60" fill="rgba(240, 240, 255, 0.8)" filter="url(#glow)"/>
+
+    <!-- Stylized Embers/Sparks -->
+    <circle cx="250" cy="500" r="5" fill="#f6ad55" opacity="0.7"/>
+    <circle cx="400" cy="450" r="3" fill="#fbd38d" opacity="0.9"/>
+    <circle cx="600" cy="550" r="6" fill="#f6ad55" opacity="0.6"/>
+    <circle cx="800" cy="480" r="4" fill="#fbd38d" opacity="0.8"/>
+    <circle cx="950" cy="580" r="5" fill="#f6ad55" opacity="0.7"/>
+
+    <!-- Text Content -->
+    <text x="600" y="280" class="title" text-shadow="0 0 10px rgba(246, 173, 85, 0.7);">The Essence of Yule</text>
+    <text x="600" y="340" class="subtitle">An interactive artwork exploring the feeling of the winter solstice.</text>
+</svg>
