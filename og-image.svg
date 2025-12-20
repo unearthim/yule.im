@@ -1,33 +1,48 @@
-<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <defs>
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&amp;family=Inter:wght@400');
-            .title { font-family: 'Cinzel', serif; font-size: 80px; fill: #fbd38d; text-anchor: middle; }
-            .subtitle { font-family: 'Inter', sans-serif; font-size: 24px; fill: #e2e8f0; text-anchor: middle; }
-        </style>
-        <filter id="glow">
-            <feGaussianBlur stdDeviation="15" result="coloredBlur"/>
-            <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-        </filter>
-    </defs>
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&amp;family=Inter:wght@300;400&amp;display=swap');
+      .cinzel { font-family: 'Cinzel', serif; }
+      .inter { font-family: 'Inter', sans-serif; }
+    </style>
+    <radialGradient id="moonGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="rgba(240, 240, 255, 0.9)"/>
+      <stop offset="100%" stop-color="rgba(240, 240, 255, 0)"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Background: Deep Night -->
+  <rect width="1200" height="630" fill="#0c0a09"/>
+  
+  <!-- Moon -->
+  <circle cx="950" cy="150" r="100" fill="url(#moonGlow)" opacity="0.4"/>
+  <circle cx="950" cy="150" r="40" fill="#f0f0ff" opacity="0.9"/>
+  
+  <!-- Rising Embers -->
+  <g opacity="0.8">
+    <circle cx="200" cy="550" r="2" fill="#fbd38d"/>
+    <circle cx="250" cy="500" r="3" fill="#f6ad55"/>
+    <circle cx="150" cy="480" r="1.5" fill="#fbd38d"/>
+    <circle cx="300" cy="580" r="2.5" fill="#f6ad55"/>
+    <circle cx="400" cy="520" r="2" fill="#fbd38d"/>
+    <circle cx="600" cy="600" r="3" fill="#f6ad55"/>
+    <circle cx="800" cy="550" r="1.5" fill="#fbd38d"/>
+    <circle cx="1000" cy="580" r="2.5" fill="#f6ad55"/>
+  </g>
 
-    <!-- Background -->
-    <rect width="1200" height="630" fill="#0c0a09"/>
+  <!-- Text Content -->
+  <g transform="translate(100, 315)">
+    <text x="0" y="0" class="cinzel" font-size="96" fill="#e2e8f0" font-weight="400">YULE.IM</text>
+    <text x="5" y="60" class="inter" font-size="24" fill="#94a3b8" letter-spacing="4" style="text-transform: uppercase;">The Essence of the Solstice</text>
+    
+    <!-- Tagline -->
+    <text x="5" y="120" class="inter" font-size="18" fill="#fbd38d" font-weight="300" opacity="0.9">
+      Light born from the deepest dark.
+    </text>
+  </g>
 
-    <!-- Moon with glow -->
-    <circle cx="1000" cy="150" r="60" fill="rgba(240, 240, 255, 0.8)" filter="url(#glow)"/>
-
-    <!-- Stylized Embers/Sparks -->
-    <circle cx="250" cy="500" r="5" fill="#f6ad55" opacity="0.7"/>
-    <circle cx="400" cy="450" r="3" fill="#fbd38d" opacity="0.9"/>
-    <circle cx="600" cy="550" r="6" fill="#f6ad55" opacity="0.6"/>
-    <circle cx="800" cy="480" r="4" fill="#fbd38d" opacity="0.8"/>
-    <circle cx="950" cy="580" r="5" fill="#f6ad55" opacity="0.7"/>
-
-    <!-- Text Content -->
-    <text x="600" y="280" class="title" text-shadow="0 0 10px rgba(246, 173, 85, 0.7);">The Essence of Yule</text>
-    <text x="600" y="340" class="subtitle">An interactive artwork exploring the feeling of the winter solstice.</text>
+  <!-- Footer -->
+  <g transform="translate(100, 550)">
+    <text x="0" y="0" class="inter" font-size="14" fill="#475569" letter-spacing="2" style="text-transform: uppercase;">A Digital Monument by Unearth.im</text>
+  </g>
 </svg>
